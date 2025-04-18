@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "450524374566",
+    "project_id": "mema-app-mobile",
+    "storage_bucket": "mema-app-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:450524374566:android:2f0ca2d90d0a409740e8e7",
+        "android_client_info": {
+          "package_name": "com.example.mema"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOweouZvAbXhYTjcp2E_lB7EBPX9mJxF8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
