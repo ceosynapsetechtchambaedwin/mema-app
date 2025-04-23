@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:mema/TemoignageDetail.dart';
+import 'package:mema/views/video/TemoignageDetail.dart';
+import 'package:mema/views/video/video_player_page.dart'; // <-- Import du lecteur interne
+import 'package:youtube_player_flutter/youtube_player_flutter.dart'; // Pour extraire l’ID et gérer les thumbnails
 
 class TemoignagesListPage extends StatelessWidget {
   final List<Map<String, dynamic>> temoignages = [
@@ -26,15 +27,7 @@ class TemoignagesListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: const Text(
-          "Témoignages",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color.fromARGB(255, 68, 138, 255),
-        centerTitle: true,
-        elevation: 1,
-      ),
+   
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: temoignages.length,
@@ -50,6 +43,7 @@ class TemoignagesListPage extends StatelessWidget {
     final title = temoignage["title"];
     final url = temoignage["url"];
     final date = temoignage["date"];
+    final videoId = YoutubePlayer.convertUrlToId(url);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -67,22 +61,42 @@ class TemoignagesListPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Bloc vidéo cliquable
+          // Bloc vidéo cliquable avec miniature
           InkWell(
-            onTap: () async {
-              if (await canLaunchUrl(Uri.parse(url))) {
-                await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-              }
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VideoPlayerPage(videoUrl: url),
+                ),
+              );
             },
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-              child: Container(
-                height: 120,
-                color: const Color(0xFFE0F7FA),
-                child: const Center(
-                  child: Icon(Icons.play_circle_fill, size: 42, color: Color(0xFF00BCD4)),
-                ),
-              ),
+              child: videoId != null
+                  ? Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.network(
+                          'https://img.youtube.com/vi/$videoId/0.jpg',
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                        const Icon(
+                          Icons.play_circle_fill,
+                          size: 60,
+                          color: Colors.white70,
+                        ),
+                      ],
+                    )
+                  : Container(
+                      height: 120,
+                      color: const Color(0xFFE0F7FA),
+                      child: const Center(
+                        child: Icon(Icons.play_circle_fill, size: 42, color: Color(0xFF00BCD4)),
+                      ),
+                    ),
             ),
           ),
 

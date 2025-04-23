@@ -1,7 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 import '../../view_models/langue_view_model.dart';
 
@@ -14,7 +15,11 @@ class DonationPage extends StatefulWidget {
 
 class _DonationPageState extends State<DonationPage> {
   final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final uuid = const Uuid();
+
+  bool _isLaunching = false;
 
   @override
   Widget build(BuildContext context) {
@@ -24,42 +29,73 @@ class _DonationPageState extends State<DonationPage> {
       appBar: AppBar(
         title: Text(isFrench ? "Faire un don" : "Make a Donation"),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
             Text(
               isFrench
-                  ? "Soutenez notre initiative avec un don."
-                  : "Support our initiative with a donation.",
+                  ? "Soutenez notre mission. Chaque don compte !"
+                  : "Support our mission. Every donation matters!",
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 30),
-            TextField(
+            _buildTextField(
+              controller: _nameController,
+              label: isFrench ? "Nom du donateur (facultatif)" : "Donor name (optional)",
+              icon: Icons.person,
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _emailController,
+              label: "Email (optionnel)",
+              icon: Icons.email,
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
               controller: _amountController,
+              label: isFrench ? "Montant (min 100 FCFA)" : "Amount (min 100 XAF)",
+              icon: Icons.money,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: isFrench ? "Montant (FCFA)" : "Amount (XAF)",
-                prefixIcon: const Icon(Icons.money),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
             ),
             const SizedBox(height: 30),
             ElevatedButton.icon(
-              onPressed: _initiatePayment,
+              onPressed: _isLaunching ? null : _initiatePayment,
               icon: const Icon(Icons.payment),
-              label:
-                  Text(isFrench ? "Payer avec CinetPay" : "Pay with CinetPay"),
+              label: Text(isFrench ? "Payer avec CinetPay" : "Pay with CinetPay"),
               style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 textStyle: const TextStyle(fontSize: 16),
               ),
             ),
+            const SizedBox(height: 20),
+            if (_isLaunching)
+              const CircularProgressIndicator(),
+            if (!_isLaunching) ...[
+              Text("Veuillez confirmer votre don de $_amountController.text XAF"),
+            ]
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
@@ -67,34 +103,66 @@ class _DonationPageState extends State<DonationPage> {
 
   void _initiatePayment() async {
     final amount = double.tryParse(_amountController.text.trim());
+    final name = _nameController.text.trim().isEmpty
+        ? "Anonymous"
+        : _nameController.text.trim();
+    final email = _emailController.text.trim().isEmpty
+        ? "anonymous@example.com"
+        : _emailController.text.trim();
+
     if (amount == null || amount < 100) {
-      _showSnackBar(
-          "Veuillez entrer un montant valide (min 100 FCFA)");
+      _showSnackBar("Veuillez entrer un montant valide (min 100 FCFA)");
       return;
     }
 
+    setState(() => _isLaunching = true);
+
     final transactionId = uuid.v4();
-    final apiKey = 'YOUR_API_KEY'; // À remplacer
-    final siteId = 'YOUR_SITE_ID'; // À remplacer
-    final notifyUrl = 'https://yourdomain.com/cinetpay/callback';
 
-    final url =
-        'https://checkout.cinetpay.com?transaction_id=$transactionId'
-        '&amount=$amount'
-        '&currency=XAF'
-        '&apikey=$apiKey'
-        '&site_id=$siteId'
-        '&description=Donation'
-        '&notify_url=$notifyUrl'
-        '&customer_name=Anonymous'
-        '&customer_email=anonymous@example.com';
+    // ⚠️ À sécuriser dans un backend en production
+    const apiKey = '312703280680692c8c3a644.80747994';  // Remplacer par ta clé API
+    const siteId = '105892882';  // Remplacer par ton ID site
+    const notifyUrl = 'https://yourdomain.com/cinetpay/callback';  // Facultatif
+    const returnUrl = 'https://yourdomain.com/cinetpay/return';  // Facultatif
 
-    final uri = Uri.parse(url);
+    final body = {
+      "apikey": apiKey,
+      "site_id": siteId,
+      "transaction_id": transactionId,
+      "amount": amount.toString(),
+      "currency": "XAF",
+      "description": "Donation",
+      "return_url": returnUrl,
+      "notify_url": notifyUrl,
+      "customer_name": name,
+      "customer_email": email,
+      "customer_phone_number": "0000000000",  // Facultatif mais recommandé
+      "channels": "ALL"
+    };
 
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      _showSnackBar("Impossible d’ouvrir le lien de paiement.");
+    try {
+      final response = await http.post(
+        Uri.parse('https://sandbox.cinetpay.com/v2/payment'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final paymentUrl = data['data']["payment_url"];
+        
+        setState(() => _isLaunching = false);  // Revenir à l'état normal
+
+        // Afficher l'URL dans un message ou une alerte
+        _showSnackBar("Voici le lien pour payer: $paymentUrl");
+      } else {
+        setState(() => _isLaunching = false);
+        _showSnackBar("Erreur CinetPay : ${response.statusCode} ${response.body}");
+      }
+    } catch (e) {
+      setState(() => _isLaunching = false);
+      _showSnackBar("Erreur lors de la connexion à CinetPay.");
+      print("Erreur: $e");
     }
   }
 

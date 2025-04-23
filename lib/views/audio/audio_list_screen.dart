@@ -26,7 +26,6 @@ class _AudioListScreenState extends State<AudioListScreen> {
     final audios = Provider.of<AudioProvider>(context).audios;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes Audios')),
       body: audios.isEmpty
           ? const Center(child: Text("Aucun audio trouvé"))
           : ListView.builder(

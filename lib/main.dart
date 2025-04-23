@@ -1,16 +1,22 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:marquee/marquee.dart';
-import 'package:mema/AudioPage.dart';
-import 'package:mema/HomePage.dart';
-import 'package:mema/TemoignagePage.dart';
+import 'package:mema/views/audio/audio_page_list.dart';
+
+
+import 'package:mema/views/video/TemoignagePage.dart';
+import 'package:mema/core/services/auth_service.dart';
 import 'package:mema/themes/app_theme.dart';
 import 'package:mema/view_models/audio_provider.dart';
 import 'package:mema/view_models/langue_view_model.dart';
 import 'package:mema/view_models/theme_provider.dart' show ThemeProvider;
+import 'package:mema/views/audio/audio_list_screen.dart';
 import 'package:mema/views/auth/login_page.dart';
+import 'package:mema/views/auth/signup_page.dart';
+import 'package:mema/views/home/home_page.dart' show HomePagePrincipal;
 import 'package:mema/views/onboarding/onboarding_page.dart';
 import 'package:mema/views/settings/setting_page.dart';
 import 'package:provider/provider.dart';
@@ -27,6 +33,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
+        ChangeNotifierProvider(create: (_) => AuthService(),),
       ],
       child: MyApp(),
     ),
@@ -45,11 +52,35 @@ class MyApp extends StatelessWidget {
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: AppTheme.lightTheme,
       
-      home: const OnboardingPage(), // Onboarding au démarrage
+      // Utilisation d'un StreamBuilder pour écouter l'état de connexion de l'utilisateur
+      home: Consumer<AuthService>(
+        builder: (context, authService, child) {
+          return StreamBuilder<User?>(
+            stream: authService.authStateChanges,
+            builder: (context, snapshot) {
+              // Si l'état de l'utilisateur est encore en cours de chargement
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              // Si l'utilisateur est connecté, on affiche la HomePage
+              if (snapshot.hasData) {
+                return const HomePage();
+              }
+
+              // Si l'utilisateur n'est pas connecté, on affiche la page d'onboarding?/newsList?/podcastList?/testimonyList
+              return const OnboardingPage();
+            },
+          );
+        },
+      ),
       routes: {
         '/home': (_) => const HomePage(),
         '/login': (_) => const LoginPage(),
-        // Ajoute d'autres routes ici si nécessaire
+        '/signup': (_) => const SignupPage(),
+        '/podcastList': (_) => const AudioListScreen(),
+        '/newsList': (_) => const SignupPage(),
+        '/testimonyList': (_) => const SignupPage(),
       },
     );
   }
@@ -84,9 +115,9 @@ class _HomePageState extends State<HomePage>
 
   final List<Widget> _pages = [
     const HomePagePrincipal(),
-    PodcastListPage(),
+    AudioListScreen(),
     TemoignagesListPage(),
-    const TelechargementView(),
+     AudioListPage(),
     const SettingsPage(),
   ];
 

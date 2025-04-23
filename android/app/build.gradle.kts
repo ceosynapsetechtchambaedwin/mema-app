@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.example.mema"
-    compileSdk =  34
+    compileSdk =  35
     ndkVersion = "28.0.13004108"
 
     compileOptions {
