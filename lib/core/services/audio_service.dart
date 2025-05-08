@@ -19,7 +19,7 @@ class PredicationService {
         if (snapshot.exists) {
           var predication = Predication.fromFirestore(snapshot);
           transaction.update(predicationRef, {
-            'download_count': predication.downloadCount + 1,
+            'download_count': predication.downloadCount! + 1,
           });
         }
       });
@@ -38,7 +38,7 @@ class PredicationService {
         if (snapshot.exists) {
           var predication = Predication.fromFirestore(snapshot);
           transaction.update(predicationRef, {
-            'share_count': predication.shareCount + 1,
+            'share_count': predication.shareCount! + 1,
           });
         }
       });

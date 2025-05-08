@@ -2,8 +2,7 @@
 // lib/models/donation_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart' show DocumentSnapshot, Timestamp;
 
-class Donation {
-  final String id;
+class Donation{
   final String userId;
   final double amount;
   final String paymentMethod;
@@ -12,7 +11,6 @@ class Donation {
   final String status;
 
   Donation({
-    required this.id,
     required this.userId,
     required this.amount,
     required this.paymentMethod,
@@ -22,7 +20,6 @@ class Donation {
   });
 
   Map<String, dynamic> toMap() => {
-        'id': id,
         'userId': userId,
         'amount': amount,
         'payementmethod': paymentMethod,
@@ -34,7 +31,6 @@ class Donation {
   factory Donation.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     return Donation(
-      id: data['id'],
       userId: data['userId'],
       amount: (data['amount'] as num).toDouble(),
       paymentMethod: data['payementmethod'],

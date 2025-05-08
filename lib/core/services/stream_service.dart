@@ -11,19 +11,19 @@ class StreamService {
   Stream<List<Predication>> getPredicationsStream() {
     return _db
         .collection('predications')
-        .where('scheduled_at', isLessThanOrEqualTo: Timestamp.now())
-        .orderBy('scheduled_at', descending: true)
+        .where('scheduledAt', isLessThanOrEqualTo: Timestamp.now())
+        .orderBy('scheduledAt', descending: true)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => Predication.fromFirestore(doc)).toList());
   }
 
-  /// 🔁 Stream des news déjà publiées
+  /// 🔁 Stream des news déjà publiées //Ok 1
   Stream<List<News>> getNewsStream() {
     return _db
         .collection('news')
-        .where('scheduled_at', isLessThanOrEqualTo: Timestamp.now())
-        .orderBy('scheduled_at', descending: true)
+        .where('scheduledAt', isLessThanOrEqualTo: Timestamp.now())
+        .orderBy('scheduledAt', descending: true)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => News.fromFirestore(doc)).toList());
@@ -33,7 +33,7 @@ class StreamService {
   Stream<List<Video>> getVideosStream() {
     return _db
         .collection('videos')
-        .orderBy('id', descending: true) // ou autre champ si besoin
+        .orderBy('createdAt', descending: true) // ou autre champ si besoin
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList());
@@ -43,7 +43,7 @@ class StreamService {
   Stream<List<Donation>> getDonationsStream() {
     return _db
         .collection('dons')
-        .orderBy('created_at', descending: true)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => Donation.fromFirestore(doc)).toList());
@@ -53,8 +53,8 @@ class StreamService {
   Stream<List<Predication>> getPredicationsStreamLimit(int i) {
     return _db
         .collection('predications')
-        .where('scheduled_at', isLessThanOrEqualTo: Timestamp.now())
-        .orderBy('scheduled_at', descending: true)
+        .where('createdAt', isLessThanOrEqualTo: Timestamp.now())
+        .orderBy('createdAt', descending: true)
         .limit(i) // Limite à 4 prédictions les plus récentes
         .snapshots()
         .map((snapshot) =>
@@ -65,8 +65,8 @@ class StreamService {
   Stream<List<News>> getNewsStreamLimit(int i) {
     return _db
         .collection('news')
-        .where('scheduled_at', isLessThanOrEqualTo: Timestamp.now())
-        .orderBy('scheduled_at', descending: true)
+        .where('scheduledAt', isLessThanOrEqualTo: Timestamp.now())
+        .orderBy('scheduledAt', descending: true)
         .limit(i) // Limite à 4 actualités les plus récentes
         .snapshots()
         .map((snapshot) =>
@@ -77,7 +77,7 @@ class StreamService {
   Stream<List<Video>> getVideosStreamLimit(int i) {
     return _db
         .collection('videos')
-        .orderBy('id', descending: true) // Vous pouvez modifier ce critère si nécessaire
+        .orderBy('createdAt', descending: true) // Vous pouvez modifier ce critère si nécessaire
         .limit(i) // Limite à 4 vidéos les plus récentes
         .snapshots()
         .map((snapshot) =>
@@ -88,7 +88,7 @@ class StreamService {
   Stream<List<Donation>> getDonationsStreamLimit(int i) {
     return _db
         .collection('dons')
-        .orderBy('created_at', descending: true)
+        .orderBy('createAt', descending: true)
         .limit(i) // Limite à 4 dons les plus récents
         .snapshots()
         .map((snapshot) =>

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:mema/views/home/app_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
@@ -26,8 +27,9 @@ class _DonationPageState extends State<DonationPage> {
     final isFrench = Provider.of<LanguageProvider>(context).isFrench;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isFrench ? "Faire un don" : "Make a Donation"),
+   appBar: PreferredSize(
+        preferredSize: Size.fromHeight(56.0),
+        child: ModernAppBar(context, title: 'Faire un don'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),

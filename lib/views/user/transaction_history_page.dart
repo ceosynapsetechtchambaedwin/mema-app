@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:mema/views/home/app_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/services/stream_service.dart';
@@ -15,8 +16,9 @@ class TransactionHistoryPage extends StatelessWidget {
     final isFrench = Provider.of<LanguageProvider>(context).isFrench;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isFrench ? "Historique des transactions" : "Transaction History"),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(56.0),
+        child: ModernAppBar(context, title: 'Historiques'),
       ),
       body: StreamBuilder<List<Donation>>(
         stream: StreamService().getDonationsStream(),

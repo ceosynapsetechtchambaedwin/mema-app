@@ -3,7 +3,7 @@ import 'package:mema/models/user_model.dart';
 
 class UserService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-
+final CollectionReference _userCollection = FirebaseFirestore.instance.collection('users');
   // Créer un nouvel utilisateur
   Future<void> createUser(User user) async {
     try {
@@ -42,6 +42,30 @@ class UserService {
       await _db.collection('users').doc(userId).delete();
     } catch (e) {
       print('Erreur suppression utilisateur: $e');
+    }
+  }
+
+
+  Future<void> createOrUpdateUser(User user) async {
+    try {
+      final docRef = _userCollection.doc(user.userId);
+      final docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        // Mettre à jour les champs (sans écraser createdAt ou role s’ils ne changent pas)
+        await docRef.update({
+          'name': user.name,
+          'email': user.email,
+          'phone': user.phone,
+          'profile_image': user.profileImage,
+        });
+      } else {
+        // Créer un nouvel utilisateur
+        await docRef.set(user.toMap());
+      }
+    } catch (e) {
+      print("Erreur lors de la création/mise à jour de l'utilisateur : $e");
+      rethrow;
     }
   }
 }

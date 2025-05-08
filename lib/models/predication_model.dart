@@ -3,21 +3,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Predication {
-  final String? id;
   final String titreFr;
   final String titreEn;
   final String descriptionFr;
   final String descriptionEn;
   final String audioUrl;
-  final DateTime createdAt;
+  final Timestamp createdAt;
   final int downloadCount;
   final int shareCount;
   final String tagFr;
   final String tagEn;
-  final DateTime? scheduledAt;
+  final Timestamp? scheduledAt;
 
   Predication({
-     this.id,
     required this.titreFr,
     required this.titreEn,
     required this.descriptionFr,
@@ -28,39 +26,37 @@ class Predication {
     this.shareCount = 0,
     required this.tagFr,
     required this.tagEn,
-    this.scheduledAt,
+     this.scheduledAt,
   });
 
   Map<String, dynamic> toMap() => {
-  
-        'titre_fr': titreFr,
-        'titre_en': titreEn,
-        'description_fr': descriptionFr,
-        'description_en': descriptionEn,
-        'audio_url': audioUrl,
-        'created_at': Timestamp.fromDate(createdAt),
-        'download_count': downloadCount,
-        'share_count': shareCount,
-        'tag_fr': tagFr,
-        'tag_en': tagEn,
-        'scheduled_at': scheduledAt != null ? Timestamp.fromDate(scheduledAt!) : null,
+        'titreFr': titreFr,
+        'titreEn': titreEn,
+        'descriptionFr': descriptionFr,
+        'descriptionEn': descriptionEn,
+        'audioUrl': audioUrl,
+        'createdAt': createdAt,
+        'downloadCount': downloadCount,
+        'shareCount': shareCount,
+        'tagFr': tagFr,
+        'tagEn': tagEn,
+        'scheduledAt': scheduledAt ,
       };
 
   factory Predication.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     return Predication(
-      id: data['id'],
-      titreFr: data['titre_fr'],
-      titreEn: data['titre_en'],
-      descriptionFr: data['description_fr'],
-      descriptionEn: data['description_en'],
-      audioUrl: data['audio_url'],
-      createdAt: (data['created_at'] as Timestamp).toDate(),
-      downloadCount: data['download_count'] ?? 0,
-      shareCount: data['share_count'] ?? 0,
-      tagFr: data['tag_fr'],
-      tagEn: data['tag_en'],
-      scheduledAt: data['scheduled_at'] != null ? (data['scheduled_at'] as Timestamp).toDate() : null,
+      titreFr: data['titreFr']??"test",
+      titreEn: data['titreEn']??"test",
+      descriptionFr: data['descriptionFr']??"test",
+      descriptionEn: data['descriptionEn']??"test",
+      audioUrl: data['audioUrl']??"test",
+      createdAt: data['createdAt'] ,
+      downloadCount: data['downloadCount'] ?? 0,
+      shareCount: data['shareCount'] ?? 0,
+      tagFr: data['tagFr']??"test",
+      tagEn: data['tagEn']??"test",
+      scheduledAt: data['scheduledAt'] ,
     );
   }
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:mema/views/home/app_bar.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoPlayerPage extends StatefulWidget {
   final String videoUrl;
+  final String descriptionFr;
+  final String descriptionEn;
 
-  const VideoPlayerPage({super.key, required this.videoUrl});
+  const VideoPlayerPage({super.key, required this.videoUrl,required this.descriptionEn,required this.descriptionFr});
 
   @override
   State<VideoPlayerPage> createState() => _VideoPlayerPageState();
@@ -19,10 +22,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
     _controller = YoutubePlayerController(
       initialVideoId: videoId ?? '',
-      flags: const YoutubePlayerFlags(
-        autoPlay: true,
-        mute: false,
-      ),
+      flags: const YoutubePlayerFlags(autoPlay: true, mute: false),
     );
   }
 
@@ -35,9 +35,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Lecture du témoignage"),
-        backgroundColor: const Color.fromARGB(255, 68, 138, 255),
+     appBar: PreferredSize(
+        preferredSize: Size.fromHeight(56.0),
+        child: ModernAppBar(context, title: 'Lecture'),
       ),
       body: YoutubePlayerBuilder(
         player: YoutubePlayer(controller: _controller),
@@ -46,11 +46,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             children: [
               player,
               const SizedBox(height: 16),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  "Glorifie Dieu à travers ces témoignages !",
-                  style: TextStyle(fontSize: 16),
+                  widget.descriptionFr,
+                  style: const TextStyle(fontSize: 16),
                 ),
               ),
             ],

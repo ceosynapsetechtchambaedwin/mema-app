@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mema/core/services/user_service.dart';
 import 'package:mema/models/user_model.dart';
+import 'package:mema/core/services/user_service.dart';
+import 'package:mema/views/home/app_bar.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -20,6 +20,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String _phone = '';
   String _profileImageUrl = '';
   File? _imageFile;
+  bool _isExistingUser = false;
 
   final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
@@ -27,15 +28,36 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   void initState() {
     super.initState();
-    final user = _auth.currentUser;
-    if (user != null) {
-      _email = user.email ?? '';
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser != null) {
+      _email = firebaseUser.email ?? '';
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
+
+      if (userSnapshot.exists) {
+        final userData = User.fromFirestore(userSnapshot);
+        setState(() {
+          _isExistingUser = true;
+          _name = userData.name;
+          _phone = userData.phone;
+          _profileImageUrl = userData.profileImage;
+        });
+      } else {
+        setState(() {
+          _profileImageUrl = firebaseUser.photoURL ?? '';
+        });
+      }
     }
   }
 
   Future<void> _pickImage() async {
-    final imagePicker = ImagePicker();
-    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -44,8 +66,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<String> _uploadImageToFirebase() async {
-    if (_imageFile == null) return '';
-
+    if (_imageFile == null) return _profileImageUrl;
     try {
       String fileName = DateTime.now().millisecondsSinceEpoch.toString();
       Reference storageRef = _firebaseStorage.ref().child('profile_images/$fileName');
@@ -58,29 +79,30 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
-  Future<void> _createUser() async {
+  Future<void> _createOrUpdateUser() async {
     if (_formKey.currentState?.validate() ?? false) {
       try {
         String profileImageUrl = await _uploadImageToFirebase();
-        String userId = FirebaseFirestore.instance.collection('users').doc().id;
+        final currentUser = _auth.currentUser;
+        if (currentUser == null) return;
 
         User user = User(
-          userId: userId,
+          userId: currentUser.uid,
           name: _name,
           email: _email,
           phone: _phone,
           profileImage: profileImageUrl,
           createdAt: DateTime.now(),
-          role: "user",
+          role: "membre",
         );
 
-        await UserService().createUser(user);
+        await UserService().createOrUpdateUser(user);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('✅ Utilisateur enregistré')),
+          SnackBar(content: Text('✅ Profil enregistré avec succès')),
         );
       } catch (e) {
-        print('Erreur création user: $e');
+        print('Erreur création: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('❌ Une erreur s\'est produite')),
         );
@@ -90,101 +112,112 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Mon Profil', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        backgroundColor: Colors.blue.shade700,
-        elevation: 2,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(56.0),
+        child: ModernAppBar(context, title: 'Mon Profil'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Image dans conteneur stylé
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade300),
-                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: _imageFile != null
-                          ? FileImage(_imageFile!)
-                          : (_profileImageUrl.isNotEmpty
-                              ? NetworkImage(_profileImageUrl)
-                              : AssetImage('assets/default_profile.png')) as ImageProvider,
+        padding: const EdgeInsets.all(20),
+        child: Center(
+          child: Card(
+            elevation: 6,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
+                        radius: 55,
+                        backgroundColor: Colors.grey.shade200,
+                        backgroundImage: _imageFile != null
+                            ? FileImage(_imageFile!)
+                            : (_profileImageUrl.isNotEmpty
+                                ? NetworkImage(_profileImageUrl)
+                                : AssetImage('assets/default_profile.png')) as ImageProvider,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _email.isNotEmpty ? _email : "Email non défini",
+                      style: TextStyle(color: Colors.grey[700], fontStyle: FontStyle.italic),
+                    ),
+                    const SizedBox(height: 24),
+
+                    _buildModernTextField(
+                      label: "Nom",
+                      icon: Icons.person,
+                      initialValue: _name,
+                      onChanged: (val) => setState(() => _name = val),
+                      validator: (val) => val == null || val.isEmpty ? 'Nom requis' : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildModernTextField(
+                      label: "Téléphone",
+                      icon: Icons.phone,
+                      initialValue: _phone,
+                      onChanged: (val) => setState(() => _phone = val),
+                      validator: (val) => val == null || val.isEmpty ? 'Téléphone requis' : null,
+                    ),
+                    const SizedBox(height: 28),
+
+                    ElevatedButton.icon(
+                      onPressed: _createOrUpdateUser,
+                      icon: Icon(Icons.save),
+                      label: Text('Enregistrer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+                    if (!_isExistingUser)
+                      Text(
+                        "⚠️ Vos informations ne sont pas encore complètes.",
+                        style: TextStyle(color: Colors.redAccent, fontStyle: FontStyle.italic),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-
-              Text(
-                _email.isNotEmpty ? 'Connecté : $_email' : 'Email non disponible',
-                style: TextStyle(color: Colors.grey[700], fontStyle: FontStyle.italic),
-              ),
-              const SizedBox(height: 24),
-
-              _buildTextField(
-                label: "Nom",
-                hint: "Entrez votre nom",
-                icon: Icons.person,
-                initialValue: _name,
-                validator: (val) => val == null || val.isEmpty ? 'Nom requis' : null,
-                onChanged: (val) => setState(() => _name = val),
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextField(
-                label: "Téléphone",
-                hint: "Entrez votre numéro",
-                icon: Icons.phone,
-                initialValue: _phone,
-                validator: (val) => val == null || val.isEmpty ? 'Téléphone requis' : null,
-                onChanged: (val) => setState(() => _phone = val),
-              ),
-              const SizedBox(height: 32),
-
-              ElevatedButton.icon(
-                icon: Icon(Icons.save),
-                label: Text('Enregistrer', style: TextStyle(fontSize: 16)),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  backgroundColor: Colors.blue.shade600,
-                ),
-                onPressed: _createUser,
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildModernTextField({
     required String label,
-    required String hint,
     required IconData icon,
-    required String initialValue,
     required String? Function(String?) validator,
     required void Function(String) onChanged,
+    String? initialValue,
   }) {
     return TextFormField(
       initialValue: initialValue,
       decoration: InputDecoration(
         labelText: label,
-        hintText: hint,
         prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey.shade400),
+        ),
       ),
       validator: validator,
       onChanged: onChanged,

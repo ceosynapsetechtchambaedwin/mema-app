@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mema/views/home/app_bar.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
@@ -9,9 +10,9 @@ class PrivacyPolicyPage extends StatelessWidget {
     final textColor = isDark ? Colors.white : Colors.black87;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Politique de confidentialité'),
-        elevation: 0,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(56.0),
+        child: ModernAppBar(context, title: 'Politique'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
