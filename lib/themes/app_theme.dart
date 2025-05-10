@@ -1,55 +1,39 @@
-// lib/themes/app_theme.dart
 import 'package:flutter/material.dart';
 
-class AppTheme {
-  /// Couleur principale
-  static const Color primaryColor = Color.fromARGB(255, 68, 138, 255);
+class AppThemes {
+  static const Color primaryBlue = Color.fromARGB(255, 68, 138, 255);
 
-  /// Thème clair
-  static final ThemeData lightTheme = ThemeData(
+  static final lightTheme = ThemeData(
     brightness: Brightness.light,
-    useMaterial3: true,
-    primaryColor: primaryColor,
     scaffoldBackgroundColor: Colors.white,
+    primaryColor: primaryBlue,
+    textTheme: const TextTheme(
+      bodyMedium: TextStyle(color: Colors.black),
+    ),
+    cardColor: Colors.white,
     appBarTheme: const AppBarTheme(
-      backgroundColor: primaryColor,
-      foregroundColor: Colors.white,
-      elevation: 0,
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
     ),
-    colorScheme: ColorScheme.light(
-      primary: primaryColor,
-      secondary: Colors.blueAccent,
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: primaryColor,
-    ),
-    buttonTheme: const ButtonThemeData(
-      buttonColor: primaryColor,
-      textTheme: ButtonTextTheme.primary,
-    ),
+    colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
+        .copyWith(background: Colors.white),
   );
 
-  /// Thème sombre
-  static final ThemeData darkTheme = ThemeData(
+  static final darkTheme = ThemeData(
     brightness: Brightness.dark,
-    useMaterial3: true,
-    primaryColor: primaryColor,
-    scaffoldBackgroundColor: const Color(0xFF121212),
+    scaffoldBackgroundColor: Colors.black,
+    primaryColor: primaryBlue,
+    textTheme: const TextTheme(
+      bodyMedium: TextStyle(color: Colors.white),
+    ),
+    cardColor: const Color(0xFF1E1E1E),
     appBarTheme: const AppBarTheme(
-      backgroundColor: primaryColor,
+      backgroundColor: Color(0xFF121212),
       foregroundColor: Colors.white,
-      elevation: 0,
     ),
-    colorScheme: ColorScheme.dark(
-      primary: primaryColor,
-      secondary: Colors.lightBlueAccent,
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: primaryColor,
-    ),
-    buttonTheme: const ButtonThemeData(
-      buttonColor: primaryColor,
-      textTheme: ButtonTextTheme.primary,
-    ),
+    colorScheme: ColorScheme.fromSwatch(
+      brightness: Brightness.dark,
+      primarySwatch: Colors.blue,
+    ).copyWith(background: Colors.black),
   );
 }

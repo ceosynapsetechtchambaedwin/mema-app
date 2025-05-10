@@ -1,36 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  static const _themeKey = 'isDarkMode';
-  bool _isDarkMode = false;
+  ThemeMode _themeMode = ThemeMode.system;  // Valeur initiale
 
-  bool get isDarkMode => _isDarkMode;
+  ThemeMode get themeMode => _themeMode;  // Getter qui renvoie la valeur de _themeMode
 
-  ThemeProvider() {
-    _loadTheme();
-  }
+  bool get isDarkMode => _themeMode == ThemeMode.dark;  // Vérifier si le mode sombre est activé
 
-  /// Charge le thème sauvegardé
-  Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isDarkMode = prefs.getBool(_themeKey) ?? false;
-    notifyListeners();
-  }
-
-  /// Change le thème
-  Future<void> toggleTheme() async {
-    _isDarkMode = !_isDarkMode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_themeKey, _isDarkMode);
-    notifyListeners();
-  }
-
-  /// Définit explicitement le thème
-  Future<void> setDarkMode(bool isDark) async {
-    _isDarkMode = isDark;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_themeKey, isDark);
-    notifyListeners();
+  void toggleTheme(bool isOn) {
+    _themeMode = isOn ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();  // Notifier tous les listeners (tout widget qui écoute ce provider)
   }
 }

@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mema/view_models/langue_view_model.dart';
 import 'package:mema/views/home/app_bar.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TemoignageDetailPage extends StatelessWidget {
@@ -20,11 +22,12 @@ class TemoignageDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFrench = Provider.of<LanguageProvider>(context).isFrench;
     return Scaffold(
       backgroundColor: Colors.white,
      appBar: PreferredSize(
         preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Details'),
+        child: ModernAppBar(context, title: isFrench?'Details':"Details"),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -33,7 +36,7 @@ class TemoignageDetailPage extends StatelessWidget {
           children: [
             _buildCard(context),
             const SizedBox(height: 40),
-            _buildVideoButton(context),
+            _buildVideoButton(context,isFrench),
           ],
         ),
       ),
@@ -95,7 +98,7 @@ class TemoignageDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoButton(BuildContext context) {
+  Widget _buildVideoButton(BuildContext context,bool isFrench) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
@@ -119,7 +122,7 @@ class TemoignageDetailPage extends StatelessWidget {
             await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Impossible d'ouvrir la vidéo.")),
+              SnackBar(content: Text(isFrench?"Impossible d'ouvrir la vidéo.":"Unable to open the video.")),
             );
           }
         },
@@ -128,9 +131,9 @@ class TemoignageDetailPage extends StatelessWidget {
           size: 32,
           color: Colors.white,
         ),
-        label: const Text(
-          "Voir la vidéo",
-          style: TextStyle(
+        label: Text(
+         isFrench?"Voir la vidéo":"Watch the video",
+          style: const TextStyle(
             fontSize: 18,
             color: Colors.white,
             fontWeight: FontWeight.bold,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mema/view_models/langue_view_model.dart';
 import 'package:mema/views/home/app_bar.dart';
+import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoPlayerPage extends StatefulWidget {
@@ -34,10 +36,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isFrench = Provider.of<LanguageProvider>(context).isFrench;
     return Scaffold(
      appBar: PreferredSize(
         preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Lecture'),
+        child: ModernAppBar(context, title: isFrench?'Lecture':'Play'), // Use the appropriate title based on the language
       ),
       body: YoutubePlayerBuilder(
         player: YoutubePlayer(controller: _controller),
@@ -49,7 +52,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  widget.descriptionFr,
+                  isFrench?widget.descriptionFr:widget.descriptionEn,
                   style: const TextStyle(fontSize: 16),
                 ),
               ),

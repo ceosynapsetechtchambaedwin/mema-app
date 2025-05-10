@@ -1,181 +1,10 @@
-// import 'package:flutter/material.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-// import 'package:share_plus/share_plus.dart';
-// import 'package:mema/models/video_model.dart';
-// import 'package:mema/views/video/TemoignageDetail.dart';
-// import 'package:mema/views/video/video_player_page.dart';
-
-// class TemoignagesListPage extends StatefulWidget {
-//   const TemoignagesListPage({super.key});
-
-//   @override
-//   State<TemoignagesListPage> createState() => _TemoignagesListPageState();
-// }
-
-// class _TemoignagesListPageState extends State<TemoignagesListPage> {
-//   final FirebaseFirestore _db = FirebaseFirestore.instance;
-
-//   Stream<List<Video>> getVideosStream() {
-//     return _db
-//         .collection('videos')
-//         .orderBy('createdAt', descending: true)
-//         .snapshots()
-//         .map((snapshot) =>
-//             snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList());
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: const Color(0xFFF9FAFB),
-//       body: StreamBuilder<List<Video>>(
-//         stream: getVideosStream(),
-//         builder: (context, snapshot) {
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return const Center(child: CircularProgressIndicator());
-//           }
-//           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-//             return const Center(child: Text("Aucun témoignage pour le moment."));
-//           }
-
-//           final videos = snapshot.data!;
-
-//           return ListView.builder(
-//             padding: const EdgeInsets.all(16),
-//             itemCount: videos.length,
-//             itemBuilder: (context, index) {
-//               final video = videos[index];
-//               return _buildTemoignageCard(context, video);
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-
-//   Widget _buildTemoignageCard(BuildContext context, Video video) {
-//     final videoId = YoutubePlayer.convertUrlToId(video.youtubeUrl);
-
-//     return Container(
-//       margin: const EdgeInsets.only(bottom: 16),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(14),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.grey.withOpacity(0.08),
-//             blurRadius: 8,
-//             offset: const Offset(2, 2),
-//           ),
-//         ],
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           InkWell(
-//             onTap: () {
-//               Navigator.push(
-//                 context,
-//                 MaterialPageRoute(
-//                   builder: (_) => VideoPlayerPage(videoUrl: video.youtubeUrl),
-//                 ),
-//               );
-//             },
-//             child: ClipRRect(
-//               borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-//               child: videoId != null
-//                   ? Stack(
-//                       alignment: Alignment.center,
-//                       children: [
-//                         Image.network(
-//                           'https://img.youtube.com/vi/$videoId/0.jpg',
-//                           height: 200,
-//                           width: double.infinity,
-//                           fit: BoxFit.cover,
-//                         ),
-//                         const Icon(
-//                           Icons.play_circle_fill,
-//                           size: 60,
-//                           color: Colors.white70,
-//                         ),
-//                       ],
-//                     )
-//                   : Container(
-//                       height: 120,
-//                       color: const Color(0xFFE0F7FA),
-//                       child: const Center(
-//                         child: Icon(Icons.play_circle_fill, size: 42, color: Color(0xFF00BCD4)),
-//                       ),
-//                     ),
-//             ),
-//           ),
-//           Padding(
-//             padding: const EdgeInsets.all(12),
-//             child: Text(
-//               video.descriptionFr,
-//               style: const TextStyle(
-//                 fontSize: 16,
-//                 fontWeight: FontWeight.w600,
-//                 color: Colors.black87,
-//               ),
-//             ),
-//           ),
-//           Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
-//             child: Row(
-//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               children: [
-//                 Text(
-//                   _formatDate(video.createdAt),
-//                   style: TextStyle(color: Colors.grey[600], fontSize: 13),
-//                 ),
-//                 Row(
-//                   children: [
-//                     IconButton(
-//                       icon: const Icon(Icons.share, size: 20, color: Colors.grey),
-//                       tooltip: "Partager",
-//                       onPressed: () {
-//                         Share.share("Regarde ce témoignage: ${video.descriptionFr}\n${video.youtubeUrl}");
-//                       },
-//                     ),
-//                     IconButton(
-//                       icon: const Icon(Icons.info_outline, size: 20, color: Colors.grey),
-//                       tooltip: "Détails",
-//                       onPressed: () {
-//                         Navigator.push(
-//                           context,
-//                           MaterialPageRoute(
-//                             builder: (_) => TemoignageDetailPage(
-//                               title: video.descriptionFr,
-//                               description: video.descriptionEn,
-//                               date: video.createdAt,
-//                               url: video.youtubeUrl,
-//                             ),
-//                           ),
-//                         );
-//                       },
-//                     ),
-//                   ],
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   String _formatDate(DateTime date) {
-//     return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
-//   }
-// }
-
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:mema/view_models/langue_view_model.dart';
 import 'package:mema/views/home/app_bar.dart';
+import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:mema/models/video_model.dart';
@@ -203,12 +32,13 @@ class _TemoignagesListPageState extends State<TemoignagesListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isFrench = Provider.of<LanguageProvider>(context).isFrench;
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Témoignages'),
+        child: ModernAppBar(context, title: isFrench?'Témoignages':'testimonials'),
       ),
       body: StreamBuilder<List<Video>>(
         stream: getVideosStream(),
@@ -217,7 +47,7 @@ class _TemoignagesListPageState extends State<TemoignagesListPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Aucun témoignage pour le moment."));
+            return Center(child: Text(isFrench?"Aucun témoignage pour le moment.":"No testimonials for now."));
           }
 
           final videos = snapshot.data!;
@@ -227,7 +57,7 @@ class _TemoignagesListPageState extends State<TemoignagesListPage> {
             itemCount: videos.length,
             itemBuilder: (context, index) {
               final video = videos[index];
-              return _buildTemoignageCard(context, video);
+              return _buildTemoignageCard(context, video,isFrench);
             },
           );
         },
@@ -235,7 +65,7 @@ class _TemoignagesListPageState extends State<TemoignagesListPage> {
     );
   }
 
-  Widget _buildTemoignageCard(BuildContext context, Video video) {
+  Widget _buildTemoignageCard(BuildContext context, Video video,bool isFrench) {
     final videoId = YoutubePlayer.convertUrlToId(video.youtubeUrl);
 
     final imageUrl = videoId != null
@@ -243,6 +73,7 @@ class _TemoignagesListPageState extends State<TemoignagesListPage> {
         : null;
 
     return AnimatedContainer(
+      
       duration: const Duration(milliseconds: 400),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -308,7 +139,7 @@ class _TemoignagesListPageState extends State<TemoignagesListPage> {
           Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
-              video.descriptionFr,
+              isFrench?video.descriptionFr:video.descriptionEn,
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -330,16 +161,16 @@ class _TemoignagesListPageState extends State<TemoignagesListPage> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.share_outlined, size: 22, color: Colors.grey),
-                      tooltip: "Partager",
+                      tooltip: isFrench?"Partager":"share",
                       onPressed: () {
                         Share.share(
-                          "Regarde ce témoignage : ${video.descriptionFr}\n${video.youtubeUrl}",
+                          isFrench?"Regarde ce témoignage : ${video.descriptionFr}\n${video.youtubeUrl}":"Check out this testimony: ${video.descriptionFr}\n${video.youtubeUrl}",
                         );
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.info_outline, size: 22, color: Colors.grey),
-                      tooltip: "Détails",
+                      tooltip: isFrench?"Détails":"Details",
                       onPressed: () {
                         Navigator.push(
                           context,

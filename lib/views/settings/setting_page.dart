@@ -21,8 +21,11 @@ class SettingsPage extends StatelessWidget {
 
     return Consumer2<ThemeProvider, SettingsProvider>(
       builder: (context, themeProvider, settings, _) {
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+
         return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(56.0),
             child: ModernAppBar(
@@ -40,38 +43,23 @@ class SettingsPage extends StatelessWidget {
                     : "Appearance & Preferences",
               ),
 
+             
               _animatedCard(
                 child: SwitchListTile(
-                  title: Text(isFrench ? 'Mode sombre' : 'Dark Mode'),
-                  value: themeProvider.isDarkMode,
-                  onChanged: (_) => themeProvider.toggleTheme(),
-                  secondary: Icon(
-                    Icons.dark_mode,
-                    color: Theme.of(context).colorScheme.primary,
+                  title: Text(
+                    isFrench ? 'Notifications' : 'Notifications',
+                    style: theme.textTheme.bodyLarge,
                   ),
-                ),
-              ),
-              _animatedCard(
-                child: SwitchListTile(
-                  title: Text(isFrench ? 'Notifications' : 'Notifications'),
                   value: settings.notificationsEnabled,
                   onChanged: settings.setNotifications,
-                  secondary: Icon(
-                    Icons.notifications,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+                  secondary: Icon(Icons.notifications, color: colorScheme.primary),
+                ), context: context,
               ),
               _animatedCard(
                 child: ListTile(
-                  leading: Icon(
-                    Icons.language,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                  leading: Icon(Icons.language, color: colorScheme.primary),
                   title: Text(isFrench ? 'Langue' : 'Language'),
-                  subtitle: Text(
-                    isFrench ? 'Choisir la langue' : 'Choose your language',
-                  ),
+                  subtitle: Text(isFrench ? 'Choisir la langue' : 'Choose your language'),
                   trailing: DropdownButton<String>(
                     value: isFrench ? 'fr' : 'en',
                     onChanged: (String? lang) {
@@ -84,39 +72,29 @@ class SettingsPage extends StatelessWidget {
                       DropdownMenuItem(value: 'en', child: Text('English')),
                     ],
                   ),
-                ),
+                ), context: context,
               ),
 
               const SizedBox(height: 20),
-              _sectionTitle(
-                context,
-                isFrench ? "Compte & Sécurité" : "Account & Security",
-              ),
+              _sectionTitle(context, isFrench ? "Compte & Sécurité" : "Account & Security"),
 
               _buildMenuItem(
                 context,
                 icon: Icons.person,
                 text: isFrench ? 'Gérer mon compte' : 'Manage My Account',
-                onTap:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => UserProfilePage()),
-                    ),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => UserProfilePage()),
+                ),
               ),
               _buildMenuItem(
                 context,
                 icon: Icons.privacy_tip,
-                text:
-                    isFrench
-                        ? 'Politique de confidentialité'
-                        : 'Privacy Policy',
-                onTap:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const PrivacyPolicyPage(),
-                      ),
-                    ),
+                text: isFrench ? 'Politique de confidentialité' : 'Privacy Policy',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()),
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -126,26 +104,19 @@ class SettingsPage extends StatelessWidget {
                 context,
                 icon: Icons.card_giftcard,
                 text: isFrench ? 'Faire un don' : 'Make a Donation',
-                onTap:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const DonationPage()),
-                    ),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DonationPage()),
+                ),
               ),
               _buildMenuItem(
                 context,
                 icon: Icons.history,
-                text:
-                    isFrench
-                        ? 'Historique des transactions'
-                        : 'Transaction History',
-                onTap:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const TransactionHistoryPage(),
-                      ),
-                    ),
+                text: isFrench ? 'Historique des transactions' : 'Transaction History',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TransactionHistoryPage()),
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -155,10 +126,9 @@ class SettingsPage extends StatelessWidget {
                 context,
                 icon: Icons.info_outline,
                 text: isFrench ? 'À propos' : 'About',
-                subtitle:
-                    isFrench
-                        ? 'Version 1.0.0 - Développée avec Synapse Tech ❤️'
-                        : 'Version 1.0.0 - Made with Mema ❤️',
+                subtitle: isFrench
+                    ? 'Version 1.0.0 - Développée avec Synapse Tech ❤️'
+                    : 'Version 1.0.0 - Made with Mema ❤️',
                 onTap: () {
                   showAboutDialog(
                     context: context,
@@ -178,10 +148,7 @@ class SettingsPage extends StatelessWidget {
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 14,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       gradient: const LinearGradient(
@@ -230,14 +197,15 @@ class SettingsPage extends StatelessWidget {
     String? subtitle,
     required VoidCallback onTap,
   }) {
+    final color = Theme.of(context).colorScheme.primary;
     return _animatedCard(
       child: ListTile(
-        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        leading: Icon(icon, color: color),
         title: Text(text),
         subtitle: subtitle != null ? Text(subtitle) : null,
         trailing: const Icon(Icons.arrow_forward_ios),
         onTap: onTap,
-      ),
+      ), context: context,
     );
   }
 
@@ -247,31 +215,33 @@ class SettingsPage extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
-          letterSpacing: 0.3,
-        ),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+              letterSpacing: 0.3,
+            ),
       ),
     );
   }
 
-  Widget _animatedCard({required Widget child}) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
+  Widget _animatedCard({required Widget child, required BuildContext context}) {
+  return AnimatedContainer(
+    duration: const Duration(milliseconds: 300),
+    curve: Curves.easeInOut,
+    margin: const EdgeInsets.symmetric(vertical: 6),
+    decoration: BoxDecoration(
+      color: Theme.of(context).cardColor, // Utilisation du context directement
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        )
+      ],
+    ),
+    child: child,
+  );
+}
+
+
 }

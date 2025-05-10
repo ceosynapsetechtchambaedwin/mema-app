@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:mema/models/predication_model.dart';
+import 'package:mema/view_models/langue_view_model.dart';
 import 'package:mema/views/home/app_bar.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:provider/provider.dart';
 
 class AudioPlayerPage extends StatefulWidget {
   final Predication predication;
@@ -95,12 +97,12 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   @override
   Widget build(BuildContext context) {
     final p = widget.predication;
-
+    final isFrench = Provider.of<LanguageProvider>(context).isFrench;
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FF),
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Ecoute de la parole'),
+        child: ModernAppBar(context, title:isFrench?'Ecoute de la parole':'Listening to speech'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -259,7 +261,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
                                         ),
                                         SizedBox(width: 10),
                                         Text(
-                                          "Télécharger",
+                                          isFrench?"Télécharger":"Download",
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 16,

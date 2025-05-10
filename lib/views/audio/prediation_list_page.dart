@@ -1,94 +1,13 @@
-// // lib/pages/predication_list_page.dart
-// import 'package:flutter/material.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:mema/models/predication_model.dart';
-// import 'package:mema/views/audio/audio_player_page2.dart';
-// import 'audio_player_page.dart';
-// import 'package:share_plus/share_plus.dart';
-// import 'package:permission_handler/permission_handler.dart';
-// import 'package:dio/dio.dart';
 
-// class PredicationListPage extends StatelessWidget {
-//   final FirebaseFirestore _db = FirebaseFirestore.instance;
-
-//   Stream<List<Predication>> getPredicationsStream() {
-//     return _db
-//         .collection('predications')
-//         .where('scheduledAt', isLessThanOrEqualTo: Timestamp.now())
-//         .orderBy('scheduledAt', descending: true)
-//         .snapshots()
-//         .map((snapshot) =>
-//             snapshot.docs.map((doc) => Predication.fromFirestore(doc)).toList());
-//   }
-
-//   Future<void> _downloadFile(String url, String fileName) async {
-//     final status = await Permission.storage.request();
-//     if (status.isGranted) {
-//       final savePath = '/storage/emulated/0/Download/$fileName.mp3';
-//       await Dio().download(url, savePath);
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-
-//       body: StreamBuilder<List<Predication>>(
-//         stream: getPredicationsStream(),
-//         builder: (context, snapshot) {
-//           if (snapshot.hasError) return Center(child: Text('Erreur : ${snapshot.error}'));
-//           if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
-
-//           final predications = snapshot.data!;
-//           return ListView.builder(
-//             itemCount: predications.length,
-//             itemBuilder: (context, index) {
-//               final p = predications[index];
-//               return Card(
-//                 margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-//                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//                 child: ListTile(
-//                   contentPadding: EdgeInsets.all(16),
-//                   title: Text(p.titreFr, style: TextStyle(fontWeight: FontWeight.bold)),
-//                   subtitle: Text(p.descriptionFr, maxLines: 2, overflow: TextOverflow.ellipsis),
-//                   onTap: () {
-//                     Navigator.push(
-//                       context,
-//                       MaterialPageRoute(
-//                         builder: (_) => AudioPlayerPage(predication: p),
-//                       ),
-//                     );
-//                   },
-//                   trailing: PopupMenuButton<String>(
-//                     onSelected: (value) {
-//                       if (value == 'partager') {
-//                         Share.share(p.audioUrl, subject: p.titreFr);
-//                       } else if (value == 'télécharger') {
-//                         _downloadFile(p.audioUrl, p.titreFr);
-//                       }
-//                     },
-//                     itemBuilder: (context) => [
-//                       PopupMenuItem(value: 'partager', child: Text("Partager")),
-//                       PopupMenuItem(value: 'télécharger', child: Text("Télécharger")),
-//                     ],
-//                     icon: Icon(Icons.more_vert),
-//                   ),
-//                 ),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mema/models/predication_model.dart';
+import 'package:mema/view_models/langue_view_model.dart';
 import 'package:mema/views/audio/audio_player_page2.dart';
 import 'package:intl/intl.dart';
 import 'package:mema/views/home/app_bar.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -150,10 +69,11 @@ class PredicationListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFrench = Provider.of<LanguageProvider>(context).isFrench;
     return Scaffold(
        appBar: PreferredSize(
         preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Podcasts'),
+        child: ModernAppBar(context, title: isFrench?'Podcasts':'Podcasts'),
       ),
       backgroundColor: const Color(0xFFF2F4F6),
       
@@ -163,7 +83,7 @@ class PredicationListPage extends StatelessWidget {
           if (snapshot.hasError) {
             return Center(
               child: Text(
-                snapshot.error?.toString() ?? 'Une erreur est survenue',
+                snapshot.error?.toString() ??'Une erreur est survenue',
               ),
             );
           }
@@ -212,7 +132,7 @@ class PredicationListPage extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          p.titreFr,
+                          isFrench?p.titreFr:p.titreEn,
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
@@ -233,7 +153,7 @@ class PredicationListPage extends StatelessWidget {
                     children: [
                       const SizedBox(height: 6),
                       Text(
-                        p.descriptionFr,
+                        isFrench?p.descriptionFr:p.descriptionEn,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -279,13 +199,13 @@ class PredicationListPage extends StatelessWidget {
                     },
                     itemBuilder:
                         (context) => [
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'partager',
-                            child: Text("Partager"),
+                            child: Text(isFrench?"Partager":"share"),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'télécharger',
-                            child: Text("Télécharger"),
+                            child: Text(isFrench?"Télécharger":"Download"),
                           ),
                         ],
                     icon: const Icon(Icons.more_vert),

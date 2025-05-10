@@ -31,11 +31,11 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: MyApp(),
     ),
@@ -51,8 +51,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Mema',
-      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      theme: AppTheme.lightTheme,
+     themeMode: themeProvider.themeMode,
+      theme: AppThemes.lightTheme,
+      darkTheme: AppThemes.darkTheme,
 
       // Utilisation d'un StreamBuilder pour écouter l'état de connexion de l'utilisateur
       home: Consumer<AuthService>(
@@ -224,42 +225,24 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  @override
+Widget build(BuildContext context) {
+  return Container(
+    color: const Color(0xFFF0F0F0), // ✅ Couleur d’arrière-plan un peu grise
+    child: Scaffold(
+      backgroundColor: Colors.transparent, // ⬅️ Important pour voir le fond
       extendBody: true,
-
       body: Stack(
         children: [
           SafeArea(child: _pages[_pageIndex]),
           if (_showDonationPanel) _buildActionPanel(),
         ],
       ),
-      // floatingActionButton: Padding(
-      //   padding: const EdgeInsets.only(right: 10, bottom: 10),
-      //   child: Container(
-      //     decoration: BoxDecoration(
-      //       shape: BoxShape.circle,
-      //       boxShadow: [
-      //         BoxShadow(
-      //           color: Colors.orange.withOpacity(0.6),
-      //           blurRadius: 12,
-      //           spreadRadius: 2,
-      //         ),
-      //       ],
-      //     ),
-      //     child: FloatingActionButton(
-      //       onPressed: _toggleDonationPanel,
-      //       backgroundColor: const Color.fromARGB(255, 68, 138, 255),
-      //       elevation: 10,
-      //       child: const Icon(Icons.forum, size: 28, color: Colors.white),
-      //     ),
-      //   ),
-      // ),
       bottomNavigationBar: CurvedNavigationBar(
         index: _pageIndex,
         height: 65,
-        backgroundColor: Colors.white,
-        color: Colors.white,
+        backgroundColor: Colors.transparent, // ✅ Rend le footer "flottant"
+        color: Colors.white, // ✅ Couleur du footer lui-même
         buttonBackgroundColor: const Color.fromARGB(255, 68, 138, 255),
         animationCurve: Curves.easeInOut,
         animationDuration: const Duration(milliseconds: 400),
@@ -275,6 +258,8 @@ class _HomePageState extends State<HomePage>
           });
         },
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

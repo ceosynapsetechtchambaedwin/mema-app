@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:mema/view_models/langue_view_model.dart';
 import 'package:mema/views/home/app_bar.dart';
+import 'package:provider/provider.dart';
 
 class LocalAudioPlayerPage extends StatefulWidget {
   final File audioFile;
@@ -67,12 +69,12 @@ class _LocalAudioPlayerPageState extends State<LocalAudioPlayerPage> {
   @override
   Widget build(BuildContext context) {
     final filename = widget.audioFile.path.split("/").last;
-
+    final isFrench = Provider.of<LanguageProvider>(context).isFrench;
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FF),
     appBar: PreferredSize(
         preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Ecoute de la parole'),
+        child: ModernAppBar(context, title: isFrench?'Ecoute de la parole':"Listening to speech"),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -105,7 +107,7 @@ class _LocalAudioPlayerPageState extends State<LocalAudioPlayerPage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        "Fichier local",
+                        isFrench?"Fichier local":"Local file",
                         style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                         textAlign: TextAlign.center,
                       ),

@@ -4,6 +4,8 @@ import 'package:mema/views/audio/local_audio_player.dart';
 import 'package:mema/views/home/app_bar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:provider/provider.dart';
+import 'package:mema/view_models/langue_view_model.dart';
 
 class LocalAudioListPage extends StatefulWidget {
   const LocalAudioListPage({Key? key}) : super(key: key);
@@ -57,11 +59,11 @@ class _LocalAudioListPageState extends State<LocalAudioListPage> {
       await File(file.path).delete();
       await _loadAudioFiles();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Fichier supprimé avec succès")),
+        SnackBar(content: Text(context.read<LanguageProvider>().isFrench ? "Fichier supprimé avec succès" : "File successfully deleted")),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur lors de la suppression : $e")),
+        SnackBar(content: Text("${context.read<LanguageProvider>().isFrench ? "Erreur lors de la suppression" : "Error deleting file"} : $e")),
       );
     }
   }
@@ -86,20 +88,29 @@ class _LocalAudioListPageState extends State<LocalAudioListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isFrench = context.watch<LanguageProvider>().isFrench;
+    final theme = Theme.of(context);
+
     return Scaffold(
-     appBar: PreferredSize(
-        preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Audios Sauvegardés'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: ModernAppBar(context, title: isFrench ? 'Audios Sauvegardés' : 'Saved Audios'),
       ),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: _audioFiles.isEmpty
-          ? const Center(child: Text("Aucun fichier audio trouvé."))
+          ? Center(
+              child: Text(
+                isFrench ? "Aucun fichier audio trouvé." : "No audio file found.",
+                style: theme.textTheme.bodyMedium,
+              ),
+            )
           : Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    "Mémoire utilisée : ${_totalSizeMB.toStringAsFixed(2)} MB",
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                    "${isFrench ? "Mémoire utilisée" : "Memory used"} : ${_totalSizeMB.toStringAsFixed(2)} MB",
+                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
                 Expanded(
@@ -116,11 +127,11 @@ class _LocalAudioListPageState extends State<LocalAudioListPage> {
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: theme.cardColor,
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
+                                  color: theme.shadowColor.withOpacity(0.05),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -135,28 +146,31 @@ class _LocalAudioListPageState extends State<LocalAudioListPage> {
                               ),
                               title: Text(
                                 _getFileName(file.path),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                              subtitle: Text("Durée : ${_formatDuration(duration)}"),
+                              subtitle: Text(
+                                "${isFrench ? "Durée" : "Duration"} : ${_formatDuration(duration)}",
+                                style: theme.textTheme.bodySmall,
+                              ),
                               trailing: IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                icon: Icon(Icons.delete_outline, color: Colors.redAccent),
                                 onPressed: () {
                                   showDialog(
                                     context: context,
                                     builder: (_) => AlertDialog(
-                                      title: const Text("Confirmer la suppression"),
-                                      content: const Text("Supprimer ce fichier ?"),
+                                      title: Text(isFrench ? "Confirmer la suppression" : "Confirm deletion"),
+                                      content: Text(isFrench ? "Supprimer ce fichier ?" : "Delete this file?"),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.pop(context),
-                                          child: const Text("Annuler"),
+                                          child: Text(isFrench ? "Annuler" : "Cancel"),
                                         ),
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
                                             _deleteFile(file);
                                           },
-                                          child: const Text("Supprimer"),
+                                          child: Text(isFrench ? "Supprimer" : "Delete"),
                                         ),
                                       ],
                                     ),

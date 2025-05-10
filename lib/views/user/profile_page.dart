@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mema/models/user_model.dart';
 import 'package:mema/core/services/user_service.dart';
-import 'package:mema/views/home/app_bar.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -21,9 +20,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String _profileImageUrl = '';
   File? _imageFile;
   bool _isExistingUser = false;
+  bool _isLoading = false;
 
   final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+
+  late bool isFrench;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Détection de la langue de l'appareil
+    isFrench = Localizations.localeOf(context).languageCode == 'fr';
+  }
 
   @override
   void initState() {
@@ -57,7 +66,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -69,7 +79,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (_imageFile == null) return _profileImageUrl;
     try {
       String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      Reference storageRef = _firebaseStorage.ref().child('profile_images/$fileName');
+      Reference storageRef =
+          _firebaseStorage.ref().child('profile_images/$fileName');
       UploadTask uploadTask = storageRef.putFile(_imageFile!);
       TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
@@ -82,6 +93,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Future<void> _createOrUpdateUser() async {
     if (_formKey.currentState?.validate() ?? false) {
       try {
+        setState(() => _isLoading = true);
+
         String profileImageUrl = await _uploadImageToFirebase();
         final currentUser = _auth.currentUser;
         if (currentUser == null) return;
@@ -99,100 +112,133 @@ class _UserProfilePageState extends State<UserProfilePage> {
         await UserService().createOrUpdateUser(user);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('✅ Profil enregistré avec succès')),
+          SnackBar(
+            content: Text(isFrench
+                ? '✅ Profil enregistré avec succès'
+                : '✅ Profile saved successfully'),
+          ),
         );
       } catch (e) {
         print('Erreur création: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Une erreur s\'est produite')),
+          SnackBar(
+            content: Text(isFrench
+                ? '❌ Une erreur s\'est produite'
+                : '❌ An error occurred'),
+          ),
         );
+      } finally {
+        setState(() => _isLoading = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Mon Profil'),
+      backgroundColor: isDark ? Colors.black : const Color(0xFFF9FAFB),
+      appBar: AppBar(
+        title: Text(
+          isFrench ? "Mon Profil" : "My Profile",
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: isDark ? Colors.white : Colors.black,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Center(
-          child: Card(
-            elevation: 6,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: CircleAvatar(
-                        radius: 55,
-                        backgroundColor: Colors.grey.shade200,
-                        backgroundImage: _imageFile != null
-                            ? FileImage(_imageFile!)
-                            : (_profileImageUrl.isNotEmpty
-                                ? NetworkImage(_profileImageUrl)
-                                : AssetImage('assets/default_profile.png')) as ImageProvider,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _email.isNotEmpty ? _email : "Email non défini",
-                      style: TextStyle(color: Colors.grey[700], fontStyle: FontStyle.italic),
-                    ),
-                    const SizedBox(height: 24),
-
-                    _buildModernTextField(
-                      label: "Nom",
-                      icon: Icons.person,
-                      initialValue: _name,
-                      onChanged: (val) => setState(() => _name = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Nom requis' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    _buildModernTextField(
-                      label: "Téléphone",
-                      icon: Icons.phone,
-                      initialValue: _phone,
-                      onChanged: (val) => setState(() => _phone = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Téléphone requis' : null,
-                    ),
-                    const SizedBox(height: 28),
-
-                    ElevatedButton.icon(
-                      onPressed: _createOrUpdateUser,
-                      icon: Icon(Icons.save),
-                      label: Text('Enregistrer'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade700,
-                        foregroundColor: Colors.white,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-                    if (!_isExistingUser)
-                      Text(
-                        "⚠️ Vos informations ne sont pas encore complètes.",
-                        style: TextStyle(color: Colors.redAccent, fontStyle: FontStyle.italic),
-                      ),
-                  ],
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 55,
+                  backgroundColor: Colors.grey.shade300,
+                  backgroundImage: _imageFile != null
+                      ? FileImage(_imageFile!)
+                      : (_profileImageUrl.isNotEmpty
+                          ? NetworkImage(_profileImageUrl)
+                          : const AssetImage('assets/default_profile.png'))
+                      as ImageProvider,
                 ),
               ),
-            ),
+              const SizedBox(height: 10),
+              Text(
+                _email.isNotEmpty ? _email : (isFrench ? "Email non défini" : "Email not set"),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 3,
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        _buildModernTextField(
+                          label: isFrench ? "Nom" : "Name",
+                          icon: Icons.person,
+                          initialValue: _name,
+                          onChanged: (val) => setState(() => _name = val),
+                          validator: (val) =>
+                              val == null || val.isEmpty ? (isFrench ? 'Nom requis' : 'Name required') : null,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildModernTextField(
+                          label: isFrench ? "Téléphone" : "Phone",
+                          icon: Icons.phone,
+                          initialValue: _phone,
+                          onChanged: (val) => setState(() => _phone = val),
+                          validator: (val) => val == null || val.isEmpty
+                              ? (isFrench ? 'Téléphone requis' : 'Phone required')
+                              : null,
+                        ),
+                        const SizedBox(height: 30),
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : ElevatedButton.icon(
+                                onPressed: _createOrUpdateUser,
+                                icon: const Icon(Icons.save),
+                                label: Text(isFrench ? "Enregistrer" : "Save"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blueAccent,
+                                  foregroundColor: Colors.white,
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                        const SizedBox(height: 20),
+                        if (!_isExistingUser)
+                          Text(
+                            isFrench
+                                ? "⚠️ Vos informations ne sont pas encore complètes."
+                                : "⚠️ Your information is not yet complete.",
+                            style: TextStyle(
+                              color: Colors.redAccent.shade200,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -210,13 +256,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
       initialValue: initialValue,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
-        floatingLabelBehavior: FloatingLabelBehavior.auto,
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
-        ),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade400),
+        prefixIcon: Icon(icon, color: Colors.grey.shade600),
+        filled: true,
+        fillColor: Colors.grey.shade100,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
       ),
       validator: validator,

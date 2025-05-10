@@ -23,7 +23,7 @@ class HomePagePrincipal extends StatefulWidget {
 
 class _HomePagePrincipalState extends State<HomePagePrincipal> {
   final TextEditingController _searchController = TextEditingController();
-  final List<String> _tags = ["Foi", "Jeunesse", "Guérison", "Prière"];
+  
   final Color primaryBlue = const Color.fromARGB(255, 68, 138, 255);
 
   @override
@@ -34,18 +34,20 @@ class _HomePagePrincipalState extends State<HomePagePrincipal> {
   @override
   Widget build(BuildContext context) {
     final isFrench = Provider.of<LanguageProvider>(context).isFrench;
+    final List<String> _tags = ["Foi", "Jeunesse", "Guérison", "Prière"];
+    
 
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(56.0),
-        child: ModernAppBar(context, title: 'Accueil'),
+        child: ModernAppBar(context, title: isFrench?'Accueil':'Home'),
       ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           children: [
             
-            _buildSearchBarWithTags(),
+            _buildSearchBarWithTags(isFrench),
             const SizedBox(height: 24),
             _buildSectionHeader(
               isFrench,
@@ -174,7 +176,9 @@ class _HomePagePrincipalState extends State<HomePagePrincipal> {
   }
 
   /// 🔍 BARRE DE RECHERCHE + TAGS
-  Widget _buildSearchBarWithTags() {
+  Widget _buildSearchBarWithTags(bool isFr) {
+    var _tags=isFr? ["Foi", "Jeunesse", "Guérison", "Prière"]:
+    ["Faith", "Youth", "Healing", "Prayer"];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -182,7 +186,7 @@ class _HomePagePrincipalState extends State<HomePagePrincipal> {
           controller: _searchController,
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search, color: Colors.grey),
-            hintText: "Rechercher...",
+            hintText: isFr?"Rechercher..." : "Search...",
             filled: true,
             fillColor: Colors.grey.shade100,
             contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -295,7 +299,7 @@ class _HomePagePrincipalState extends State<HomePagePrincipal> {
             const SizedBox(height: 4),
             Text(
               isFrench ? news.descriptionFr : news.descriptionEn,
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              style: const TextStyle(fontSize: 13,fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
             Row(
