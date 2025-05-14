@@ -8,6 +8,7 @@ import 'package:mema/models/predication_model.dart';
 import 'package:mema/models/video_model.dart';
 import 'package:mema/view_models/langue_view_model.dart';
 import 'package:mema/views/audio/audio_player_page2.dart';
+import 'package:mema/views/audio/predication_result_page.dart';
 import 'package:mema/views/home/app_bar.dart';
 import 'package:mema/views/video/video_player_page.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +48,7 @@ class _HomePagePrincipalState extends State<HomePagePrincipal> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           children: [
             
-            _buildSearchBarWithTags(isFrench),
+            _buildSearchBarWithTags2(isFrench),
             const SizedBox(height: 24),
             _buildSectionHeader(
               isFrench,
@@ -175,6 +176,81 @@ class _HomePagePrincipalState extends State<HomePagePrincipal> {
     );
   }
 
+
+
+Widget _buildSearchBarWithTags2(bool isFr) {
+  var _tags = isFr ? ["Foi", "Jeunesse", "Guérison", "Prière"] : ["Faith", "Youth", "Healing", "Prayer"];
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                hintText: isFr ? "Rechercher..." : "Search...",
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward),
+            onPressed: () {
+              final tag = _searchController.text.trim();
+              if (tag.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PredicationResultsPage(tag: tag),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _tags.map((tag) {
+            return Container(
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF90CAF9),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  _searchController.text = tag;
+                  setState(() {});
+                },
+                child: Text(
+                  tag,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    ],
+  );
+}
+
+
   /// 🔍 BARRE DE RECHERCHE + TAGS
   Widget _buildSearchBarWithTags(bool isFr) {
     var _tags=isFr? ["Foi", "Jeunesse", "Guérison", "Prière"]:
@@ -215,7 +291,9 @@ class _HomePagePrincipalState extends State<HomePagePrincipal> {
                     child: GestureDetector(
                       onTap: () {
                         _searchController.text = tag;
-                        setState(() {});
+                        setState(() {
+                          
+                        });
                       },
                       child: Text(
                         tag,

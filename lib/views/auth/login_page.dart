@@ -175,29 +175,42 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildGoogleButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: OutlinedButton.icon(
-        icon: const Icon(Icons.g_mobiledata, color: Colors.red, size: 28),
-        label: Text(
-          'Continuer avec Google',
-          style: GoogleFonts.poppins(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
+ Widget _buildGoogleButton() {
+  return SizedBox(
+    width: double.infinity,
+    height: 50,
+    child: OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        side: BorderSide(color: Colors.grey.shade300),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
         ),
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey.shade300),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        onPressed: _isLoading ? null : _loginWithGoogle,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
       ),
-    );
-  }
+      onPressed: _isLoading ? null : _loginWithGoogle,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/google.png',
+            height: 24,
+            width: 24,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'Continuer avec Google',
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 }
